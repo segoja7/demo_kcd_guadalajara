@@ -27,6 +27,7 @@
 region = option("params")?.oxr?.spec.region or "us-east-1"
 projectName = option("params")?.oxr?.spec.parameters.projectName or "nodefined"
 ec2api = "ec2.aws.crossplane.io/v1beta1"
+iamapi = "iam.aws.crossplane.io/v1beta1"
 subnet_configs = [
     {"name": "data-private-subnet-az1", "cidr": "172.16.1.0/24", "zone": "us-east-1a", "type": "private"},
     {"name": "data-private-subnet-az2", "cidr": "172.16.2.0/24", "zone": "us-east-1b", "type": "private"},
@@ -255,6 +256,173 @@ _resources += [
             }
         }
     } for routeTable in routeTableConfigs
+]
+import json
+
+_resources += [
+    {
+        apiVersion = iamapi
+        kind = "Role"
+        metadata = {
+            name = "clusterrole-" + projectName
+            labels = {
+                role = "clusterrole-" + projectName 
+            }
+        }
+        spec = {
+            forProvider = {
+                assumeRolePolicyDocument = json.encode({
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": ["eks.amazonaws.com"]
+                            },
+                            "Action": ["sts:AssumeRole"]
+                        }
+                    ]
+                })
+                description = "Role for EKS cluster"
+                tags = [
+                    {
+                        key = "Name"
+                        value = "role-" + projectName
+                    }
+                ]
+            }
+            providerConfigRef = {
+                name = providerConfigName
+            }
+        }
+    }
+]
+_resources += [
+    {
+        apiVersion = iamapi
+        kind = "RolePolicyAttachment"
+        metadata = {
+            name = "clusterrolepolicy-" + projectName
+        }
+        spec = {
+            forProvider = {
+                policyArn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+                roleName = "clusterrole-" + projectName
+            }
+            providerConfigRef = {
+                name = providerConfigName
+            }
+        }
+    }
+]
+_resources += [
+    {
+        apiVersion = iamapi
+        kind = "Role"
+        metadata = {
+            name = "clusternoderole-" + projectName
+            labels = {
+                type = "clusternoderole-" + projectName
+            }
+        }
+        spec = {
+            forProvider = {
+                assumeRolePolicyDocument = json.encode({
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": ["ec2.amazonaws.com"]
+                            },
+                            "Action": ["sts:AssumeRole"]
+                        }
+                    ]
+                })
+                tags = [
+                    {
+                        key = "Name"
+                        value = "clusternoderole-" + projectName
+                    }
+                ]                 
+                description = "Role for cluster node"               
+            }
+            providerConfigRef = {
+                name = providerConfigName
+            }
+        }
+    }
+]
+_resources += [
+    {
+        apiVersion = iamapi
+        kind = "RolePolicyAttachment"
+        metadata = {
+            name = "clusternoderolepolicy-" + projectName + "-" + str(policy + 1)
+        }
+        spec = {
+            forProvider = {
+                policyArn = policyarn[policy]
+                roleName = "clusternoderole-" + projectName
+            }
+            providerConfigRef = {
+                name = providerConfigName
+            }
+        }
+    } for policy in range(len(policyarn))
+]
+_resources += [
+    {
+        apiVersion = iamapi
+        kind = "Role"
+        metadata = {
+            name = "clusteradminrole-" + projectName
+        }
+        spec = {
+            forProvider = {
+                assumeRolePolicyDocument = json.encode({
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": ["pods.eks.amazonaws.com"]
+                            },
+                            "Action": ["sts:AssumeRole", "sts:TagSession"]
+                        }
+                    ]
+                })
+                tags = [
+                    {
+                        key = "Name"
+                        value = "clusternoderole-" + projectName
+                    }
+                ]                 
+                description = "Role for cluster node"             
+            }
+            providerConfigRef = {
+                name = providerConfigName
+            }
+        }
+    }
+]
+_resources += [
+    {
+        apiVersion = iamapi
+        kind = "RolePolicyAttachment"
+        metadata = {
+            name = "clusteradminrolepolicy-" + projectName
+        }
+        spec = {
+            forProvider = {
+                policyArn = "arn:aws:iam::aws:policy/AdministratorAccess"
+                roleName = "clusteradminrole-" + projectName
+            }
+            providerConfigRef = {
+                name = providerConfigName
+            }
+        }
+    } for policy in range(len(policyarn))
 ]
 items = _resources
 """
