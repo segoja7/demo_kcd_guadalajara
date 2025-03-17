@@ -1,0 +1,17 @@
+apiVersion: segoja7.example/v1alpha1
+kind: MultiAzWordpressInfra
+metadata:
+ name: wordpress-claim
+ namespace: default
+spec:
+  parameters:
+    projectName: wordpress-team1s
+---
+apiVersion: segoja7.example/v1alpha1
+kind: MultiAzWordpressInfra
+metadata:
+ name: wordpress-claim2
+ namespace: default
+spec:
+  parameters:
+    projectName: wordpress-team2s

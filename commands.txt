@@ -1,0 +1,13 @@
+helm repo add crossplane-stable https://charts.crossplane.io/stable
+helm install crossplane --create-namespace --namespace crossplane-system crossplane-stable/crossplane
+----- 
+[default]
+aws_access_key_id = <access_key_id>
+aws_secret_access_key = <secret_access_key>
+
+kubectl create secret generic aws-secret -n crossplane-system --from-file=creds=./profile.txt
+---
+kubectl apply -f provider.yaml
+---
+kubectl apply -f providerconfig.yaml
+---
