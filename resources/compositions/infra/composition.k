@@ -36,8 +36,8 @@ subnet_configs = [
     {"name": "public-subnet-az2", "cidr": "172.16.6.0/24", "zone": "us-east-1b", "type": "public"}
 ]
 routeTableConfigs = [
-              {"name": "public", "subnet_type": "public"},
-              {"name": "private", "subnet_type": "private"}
+              {"name": "public",},
+              {"name": "private",}
 ]
 
 policyarn = [
@@ -54,7 +54,6 @@ addons = [
     {"name": "eks-pod-identity-agent", "version": "v1.3.4-eksbuild.1"},
 ]
 additional_tags = [
-    {"key": "Owner", "value": project_name},
     {"key": "Environment", "value": "dev"}
 ]
 _resources = [
@@ -87,7 +86,6 @@ _resources = [
         }
     }
 ]
-
 _resources += [
     {
         apiVersion: ec2api
@@ -120,6 +118,32 @@ _resources += [
                 }
             }
     } for subnet in subnet_configs
+]
+_resources += [
+    {
+        apiVersion: ec2api
+        kind: "InternetGateway"
+        metadata: {
+            name: "igw-" + projectName
+        }
+        spec: {
+            forProvider: {
+                vpcIdSelector: {
+                    matchControllerRef: True
+                }
+                region: region
+                tags: [
+                    {
+                        key: "Name"
+                        value: "igw-" + projectName
+                    }
+                ]
+            }
+            providerConfigRef: {
+                name: providerConfigName
+            }
+        }
+    }
 ]
 _resources += [
     {
@@ -174,6 +198,64 @@ _resources += [
         }
     } for subnet in subnet_configs if subnet.type == "public"
 ]
+_resources += [
+    {
+        apiVersion: ec2api
+        kind: "RouteTable"
+        metadata: {
+            name: "rt-" + routeTable.name + "-" + projectName
+            labels: {
+                type: routeTable.name
+            }
+        }
+        spec: {
+            forProvider: {
+                if routeTable.name == "public":
+                    associations = [{
+                        subnetIdRef = {
+                            name = subnet.name + "-" + projectName
+                        }
+                    } for subnet in subnet_configs if subnet.type == "public"]
+                    
+                    routes = [  #deprecated
+                        {
+                            destinationCidrBlock = "0.0.0.0/0"
+                            gatewayIdSelector = {
+                                matchControllerRef = True
+                            }
+                        }
+                    ]
+                else:
+                    associations = [{
+                        subnetIdRef = {
+                            name = subnet.name + "-" + projectName
+                        }
+                    } for subnet in subnet_configs if subnet.type == "private"]
+                    routes = [  #deprecated
+                        {
+                            destinationCidrBlock = "0.0.0.0/0"
+                            natGatewayIdSelector  = {
+                                matchControllerRef = True
+                            }
+                        }
+                    ]
+                vpcIdSelector: {
+                    matchControllerRef: True
+                }                                 
+                region: region
+                tags: [
+                    {
+                        key: "Name"
+                        value: "rt-" + routeTable.name + "-" + projectName
+                    }
+                ]
+            }
+            providerConfigRef: {
+                name: providerConfigName
+            }
+        }
+    } for routeTable in routeTableConfigs
+]
 items = _resources
 """
                     }
@@ -188,3 +270,6 @@ items = _resources
         ]
     }
 }
+
+
+
