@@ -481,7 +481,7 @@ _resources += [
             forProvider = {
                 diskSize = 20
                 instanceTypes = [
-                    "t3.small"
+                    "t3.medium"
                 ]
                 clusterNameSelector = {
                     matchControllerRef = True
