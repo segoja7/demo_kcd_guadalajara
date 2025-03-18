@@ -29,12 +29,12 @@ projectName = option("params")?.oxr?.spec.parameters.projectName or "nodefined"
 ec2api = "ec2.aws.crossplane.io/v1beta1"
 iamapi = "iam.aws.crossplane.io/v1beta1"
 subnet_configs = [
-    {"name": "data-private-subnet-az1", "cidr": "172.16.1.0/24", "zone": "us-east-1a", "type": "private"},
-    {"name": "data-private-subnet-az2", "cidr": "172.16.2.0/24", "zone": "us-east-1b", "type": "private"},
-    {"name": "app-private-subnet-az1", "cidr": "172.16.3.0/24", "zone": "us-east-1a", "type": "private"},
-    {"name": "app-private-subnet-az2", "cidr": "172.16.4.0/24", "zone": "us-east-1b", "type": "private"},
-    {"name": "public-subnet-az1", "cidr": "172.16.5.0/24", "zone": "us-east-1a", "type": "public"},
-    {"name": "public-subnet-az2", "cidr": "172.16.6.0/24", "zone": "us-east-1b", "type": "public"}
+    {"name": "data-private-subnet-az1", "cidr": "172.16.1.0/24", "zone": "us-east-1a", "type": "private", "layer": "data"},
+    {"name": "data-private-subnet-az2", "cidr": "172.16.2.0/24", "zone": "us-east-1b", "type": "private", "layer": "data"},
+    {"name": "app-private-subnet-az1", "cidr": "172.16.3.0/24", "zone": "us-east-1a", "type": "private", "layer": "app"},
+    {"name": "app-private-subnet-az2", "cidr": "172.16.4.0/24", "zone": "us-east-1b", "type": "private", "layer": "app"},
+    {"name": "public-subnet-az1", "cidr": "172.16.5.0/24", "zone": "us-east-1a", "type": "public",  "layer": "internet"},
+    {"name": "public-subnet-az2", "cidr": "172.16.6.0/24", "zone": "us-east-1b", "type": "public", layer: "internet"}
 ]
 routeTableConfigs = [
               {"name": "public",},
@@ -423,6 +423,147 @@ _resources += [
             }
         }
     } for policy in range(len(policyarn))
+]
+_resources += [
+    {
+        apiVersion = "eks.aws.crossplane.io/v1beta1"
+        kind = "Cluster"
+        metadata = {
+            name = "cluster-" + projectName
+            labels ={
+                name = "cluster-" + projectName
+            }
+        }
+        spec = {
+            forProvider = {
+                accessConfig = {
+                    authenticationMode = "API_AND_CONFIG_MAP"
+                }
+                roleArnSelector = {
+                    matchControllerRef = True
+                    matchLabels = {
+                        role = "clusterrole-" + projectName
+                    }
+                }
+                resourcesVpcConfig = {
+                    endpointPrivateAccess = True
+                    endpointPublicAccess = True
+                    subnetIdSelector = {
+                        matchControllerRef = True
+                        matchLabels = {
+                            layer = "app"
+                        } 
+                    }
+                }
+                tags = {
+                    "Name": "cluster-" + projectName
+                }
+                region = region                                                
+            }
+            providerConfigRef = {
+                name = providerConfigName
+            }
+            writeConnectionSecretToRef = {
+                name = "cluster-" + projectName
+                namespace = "default"
+            }            
+        }
+    } 
+]
+_resources += [
+    {
+        apiVersion = "eks.aws.crossplane.io/v1alpha1"
+        kind = "NodeGroup"
+        metadata = {
+            name = "nodegroup-" + projectName
+        }
+        spec = {
+            forProvider = {
+                diskSize = 20
+                instanceTypes = [
+                    "t3.small"
+                ]
+                clusterNameSelector = {
+                    matchControllerRef = True
+                    matchLabels = {
+                        name = "cluster-" + projectName
+                    }
+                }
+                subnetSelector = {
+                    matchControllerRef = True
+                    matchLabels = {
+                        layer = "app"
+                    }
+                }   
+                nodeRoleSelector = {
+                    matchControllerRef = True
+                    matchLabels = {
+                        type = "clusternoderole-" + projectName
+                    }
+                }
+                updateConfig = {
+                    maxUnavailable = 1
+                }
+                scalingConfig = {
+                    minSize = 1
+                    maxSize = 1
+                    desiredSize = 1
+                }
+
+                tags = {
+                    "Name": "nodegroup-" + projectName
+                }
+                region = region                                                
+            }
+            providerConfigRef = {
+                name = providerConfigName
+            }          
+        }
+    }
+]
+_resources += [
+    {
+        apiVersion = "eks.aws.crossplane.io/v1alpha1"
+        kind = "Addon"
+        metadata = {
+            name = "addon-" + addon.name + "-" + projectName
+        }
+        spec = {
+            forProvider = {
+                addonName = addon.name
+                addonVersion = addon.version
+                clusterNameSelector = {
+                    matchControllerRef = True
+                    matchLabels = {
+                        name = "cluster-" + projectName
+                    }
+                }
+                region = region
+            }
+            providerConfigRef = {
+                name = providerConfigName
+            }          
+        }
+    } for addon in addons
+] 
+_resources += [
+    {
+        apiVersion = "kubernetes.crossplane.io/v1alpha1"
+        kind = "ProviderConfig"
+        metadata = {
+            name = "k8s-provider" + projectName
+        }
+        spec = {
+            credentials = {
+                source = "Secret"
+                secretRef = {
+                key = "kubeconfig"
+                name = "cluster-" + projectName
+                namespace = "default"
+                }
+            }         
+        }
+    }
 ]
 items = _resources
 """
