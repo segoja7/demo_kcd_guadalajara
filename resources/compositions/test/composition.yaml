@@ -1,0 +1,32 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: iam-policy-composition
+spec:
+  compositeTypeRef:
+    apiVersion: example.org/v1alpha1
+    kind: XIAMPolicy
+  mode: Pipeline
+  pipeline:
+  - step: patch-and-transform
+    functionRef:
+      name: function-patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources:
+      - name: iampolicy
+        base:
+          apiVersion: iam.aws.crossplane.io/v1beta1
+          kind: Policy
+          spec:
+            forProvider:
+              name: ""
+              document: ""
+            providerConfigRef:
+              name: "segoja7"
+        patches:
+        - fromFieldPath: spec.policyName
+          toFieldPath: spec.forProvider.name
+        - fromFieldPath: spec.policyDocument
+          toFieldPath: spec.forProvider.document

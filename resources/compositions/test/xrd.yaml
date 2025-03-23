@@ -1,0 +1,30 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xiampolicies.example.org
+spec:
+  group: example.org
+  names:
+    kind: XIAMPolicy
+    plural: xiampolicies
+  claimNames:
+    kind: IAMPolicy
+    plural: iampolicies
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              policyName:
+                type: string
+              policyDocument:
+                type: string
+            required:
+              - policyName
+              - policyDocument

@@ -1,0 +1,36 @@
+apiVersion: example.org/v1alpha1
+kind: XIAMPolicy
+metadata:
+  name: platform-test-policy
+spec:
+  policyName: "PlatformTestPolicy"
+  policyDocument: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "s3:ListBucket",
+          "Resource": "*"
+        }
+      ]
+    }
+---
+apiVersion: example.org/v1alpha1
+kind: IAMPolicy
+metadata:
+  name: dev-policy
+  namespace: default
+spec:
+  policyName: "DevPolicy"
+  policyDocument: |
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeInstances",
+          "Resource": "*"
+        }
+      ]
+    }
