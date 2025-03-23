@@ -2,13 +2,17 @@
     apiVersion = "apiextensions.crossplane.io/v1"
     kind = "CompositeResourceDefinition"
     metadata = {
-        name = "multiazwordpressinfra.segoja7.example"
+        name = "xmultiazinfras.segoja7.example"
     }
     spec = {
         group = "segoja7.example"
         names = {
-            kind = "MultiAzWordpressInfra"
-            plural = "multiazwordpressinfra"
+            kind = "xMultiAzInfra"
+            plural = "xmultiazinfras"
+        }
+        claimNames = {
+            kind = "MultiAzInfraClaim"
+            plural = "multiazinfraclaims"
         }
         versions = [
             {

@@ -15,20 +15,6 @@ spec:
 apiVersion: pkg.crossplane.io/v1beta1
 kind: Function
 metadata:
-  name: function-sequencer
-spec:
-  package: xpkg.upbound.io/crossplane-contrib/function-sequencer:v0.2.2
----
-apiVersion: pkg.crossplane.io/v1beta1
-kind: Function
-metadata:
-  name: function-tag-manager
-spec:
-  package: xpkg.upbound.io/crossplane-contrib/function-tag-manager:v0.3.3
----
-apiVersion: pkg.crossplane.io/v1beta1
-kind: Function
-metadata:
   name: function-kcl
 spec:
   package: xpkg.upbound.io/crossplane-contrib/function-kcl:v0.11.2

@@ -2,12 +2,12 @@
     apiVersion = "apiextensions.crossplane.io/v1"
     kind = "Composition"
     metadata = {
-        name = "multiazwordpressinfra-composition"
+        name = "infra-composition"
     }
     spec = {
         compositeTypeRef = {
             apiVersion = "segoja7.example/v1alpha1"
-            kind = "MultiAzWordpressInfra"
+            kind = "xMultiAzInfra"
         }
         mode = "Pipeline"
         pipeline = [
