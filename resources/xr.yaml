@@ -1,0 +1,7 @@
+apiVersion: segoja7.example/v1alpha1
+kind: XMultiAzInfra
+metadata:
+  name: infra-compositeresource
+spec:
+  parameters:
+    projectName: "teamplatform-xr"

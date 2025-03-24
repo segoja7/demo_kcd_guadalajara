@@ -7,7 +7,7 @@
     spec = {
         compositeTypeRef = {
             apiVersion = "segoja7.example/v1alpha1"
-            kind = "xMultiAzInfra"
+            kind = "XMultiAzInfra"
         }
         mode = "Pipeline"
         pipeline = [
@@ -71,10 +71,6 @@ _resources = [
                 enableDnsHostNames: True
                 region: region
                 tags: [
-                    {
-                        key: "app"
-                        value: "wordpress"
-                    },
                     {
                         key: "Name"
                         value: "vpc-" + projectName
@@ -542,7 +538,7 @@ _resources += [
             }
             providerConfigRef = {
                 name = providerConfigName
-            }          
+            }                       
         }
     } for addon in addons
 ] 

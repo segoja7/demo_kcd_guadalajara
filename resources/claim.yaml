@@ -16,11 +16,3 @@ spec:
   parameters:
     projectName: team2-claim
 ---
-apiVersion: segoja7.example/v1alpha1
-kind: xMultiAzInfra
-metadata:
-  name: infra-compositeresource
-  namespace: default
-spec:
-  parameters:
-    projectName: "teamplatform-xr"

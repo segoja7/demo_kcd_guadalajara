@@ -7,7 +7,7 @@
     spec = {
         group = "segoja7.example"
         names = {
-            kind = "xMultiAzInfra"
+            kind = "XMultiAzInfra"
             plural = "xmultiazinfras"
         }
         claimNames = {
