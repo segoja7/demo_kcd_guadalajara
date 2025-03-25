@@ -561,13 +561,90 @@ _resources += [
         }
     }
 ]
+_resources += [
+    {
+        apiVersion = "kubernetes.crossplane.io/v1alpha2",
+        kind = "Object",
+        metadata = {
+            name = "k8s-deploy-" + projectName
+        },
+        spec = {
+            forProvider = {
+                manifest = {
+                    apiVersion = "v1",
+                    kind = "Pod",
+                    metadata = {
+                        namespace = "default",
+                        name = "2048-pod-" + projectName,
+                        labels = {
+                            app = "2048"
+                        }
+                    },
+                    spec = {
+                        containers = [
+                            {
+                                name = "2048-container",
+                                image = "blackicebird/2048",
+                                ports = [
+                                    {
+                                        containerPort = 80
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            },
+            providerConfigRef = {
+                name = "k8s-provider" + projectName
+            }
+        }
+    }
+]
+_resources += [
+    {
+        apiVersion = "kubernetes.crossplane.io/v1alpha2",
+        kind = "Object",
+        metadata = {
+            name = "k8s-deploy-service-" + projectName
+        },
+        spec = {
+            forProvider = {
+                manifest = {
+                    apiVersion = "v1",
+                    kind = "Service",
+                    metadata = {
+                        namespace = "default",
+                        name = "svc-2048-" + projectName
+                    },
+                    spec = {
+                        selector = {
+                            app = "2048"
+                        },
+                        ports = [
+                            {
+                                protocol = "TCP",
+                                port = 80,
+                                targetPort = 80
+                            }
+                        ],
+                        type = "LoadBalancer"
+                    }
+                }
+            },
+            providerConfigRef = {
+                name = "k8s-provider" + projectName
+            }
+        }
+    }
+]
 items = _resources
 """
                     }
                 }
             }
             {
-                step = "ready"
+                step = "automatically-detect-ready-composed-resources"
                 functionRef = {
                     name = "function-auto-ready"
                 }
