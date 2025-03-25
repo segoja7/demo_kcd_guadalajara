@@ -547,18 +547,31 @@ _resources += [
         apiVersion = "kubernetes.crossplane.io/v1alpha1"
         kind = "ProviderConfig"
         metadata = {
-            name = "k8s-provider" + projectName
+            name = "provider-k8s-" + projectName
+        }
+        metadata.annotations = {
+          "krm.kcl.dev/ready": "True"
         }
         spec = {
             credentials = {
                 source = "Secret"
                 secretRef = {
-                key = "kubeconfig"
-                name = "cluster-" + projectName
-                namespace = "default"
+                    key = "kubeconfig"
+                    name = "cluster-" + projectName
+                    namespace = "default"
                 }
             }         
         }
+        # status = {
+        #     conditions = [
+        #         {
+        #             message = "ProviderConfig is ready"
+        #             reason = "ProviderConfigReady"
+        #             status = "True"
+        #             type = "Ready"
+        #         }
+        #     ]
+        # }
     }
 ]
 _resources += [
@@ -596,7 +609,7 @@ _resources += [
                 }
             },
             providerConfigRef = {
-                name = "k8s-provider" + projectName
+                name = "provider-k8s-" + projectName
             }
         }
     }
@@ -633,7 +646,7 @@ _resources += [
                 }
             },
             providerConfigRef = {
-                name = "k8s-provider" + projectName
+                name = "provider-k8s-" + projectName
             }
         }
     }
@@ -648,7 +661,7 @@ items = _resources
                 functionRef = {
                     name = "function-auto-ready"
                 }
-            }     
+            }                
         ]
     }
 }
