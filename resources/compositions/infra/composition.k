@@ -548,9 +548,9 @@ _resources += [
         kind = "ProviderConfig"
         metadata = {
             name = "provider-k8s-" + projectName
-        }
-        metadata.annotations = {
-          "krm.kcl.dev/ready": "True"
+            annotations = {
+                "krm.kcl.dev/ready": "True"
+            }
         }
         spec = {
             credentials = {
@@ -560,18 +560,8 @@ _resources += [
                     name = "cluster-" + projectName
                     namespace = "default"
                 }
-            }         
+            }
         }
-        # status = {
-        #     conditions = [
-        #         {
-        #             message = "ProviderConfig is ready"
-        #             reason = "ProviderConfigReady"
-        #             status = "True"
-        #             type = "Ready"
-        #         }
-        #     ]
-        # }
     }
 ]
 _resources += [
