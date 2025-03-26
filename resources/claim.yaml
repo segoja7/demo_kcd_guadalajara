@@ -6,12 +6,14 @@ metadata:
 spec:
   parameters:
     projectName: team1-claim
+    region: us-east-1
 ---
-# apiVersion: segoja7.example/v1alpha1
-# kind: MultiAzInfraClaim
-# metadata:
-#   name: infra-claim2
-#   namespace: default
-# spec:
-#   parameters:
-#     projectName: team2-claim
+apiVersion: segoja7.example/v1alpha1
+kind: MultiAzInfraClaim
+metadata:
+  name: infra-claim2
+  namespace: default
+spec:
+  parameters:
+    projectName: team2-claim
+    region: us-east-2

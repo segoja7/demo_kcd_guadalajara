@@ -24,17 +24,17 @@
                     }
                     spec = {
                         source = r"""providerConfigName = option("params")?.oxr?.spec?.providerConfigName or "segoja7"
-region = option("params")?.oxr?.spec.region or "us-east-1"
+region = option("params")?.oxr?.spec.parameters.region or "us-east-1"
 projectName = option("params")?.oxr?.spec.parameters.projectName or "nodefined"
 ec2api = "ec2.aws.crossplane.io/v1beta1"
 iamapi = "iam.aws.crossplane.io/v1beta1"
 subnet_configs = [
-    {"name": "data-private-subnet-az1", "cidr": "172.16.1.0/24", "zone": "us-east-1a", "type": "private", "layer": "data"},
-    {"name": "data-private-subnet-az2", "cidr": "172.16.2.0/24", "zone": "us-east-1b", "type": "private", "layer": "data"},
-    {"name": "app-private-subnet-az1", "cidr": "172.16.3.0/24", "zone": "us-east-1a", "type": "private", "layer": "app"},
-    {"name": "app-private-subnet-az2", "cidr": "172.16.4.0/24", "zone": "us-east-1b", "type": "private", "layer": "app"},
-    {"name": "public-subnet-az1", "cidr": "172.16.5.0/24", "zone": "us-east-1a", "type": "public",  "layer": "internet"},
-    {"name": "public-subnet-az2", "cidr": "172.16.6.0/24", "zone": "us-east-1b", "type": "public", layer: "internet"}
+    {"name": "data-private-subnet-az1", "cidr": "172.16.1.0/24", "zone": region + "a", "type": "private", "layer": "data"},
+    {"name": "data-private-subnet-az2", "cidr": "172.16.2.0/24", "zone": region + "b", "type": "private", "layer": "data"},
+    {"name": "app-private-subnet-az1", "cidr": "172.16.3.0/24", "zone": region + "a", "type": "private", "layer": "app"},
+    {"name": "app-private-subnet-az2", "cidr": "172.16.4.0/24", "zone": region + "b", "type": "private", "layer": "app"},
+    {"name": "public-subnet-az1", "cidr": "172.16.5.0/24", "zone": region + "a", "type": "public",  "layer": "internet"},
+    {"name": "public-subnet-az2", "cidr": "172.16.6.0/24", "zone": region + "b", "type": "public", "layer": "internet"}
 ]
 routeTableConfigs = [
               {"name": "public",},
@@ -92,6 +92,7 @@ _resources += [
             labels: {
                 layer: subnet.layer
                 name: subnet.name
+                zone: subnet.zone
             }
         }
         spec: {
@@ -489,6 +490,7 @@ _resources += [
                     matchControllerRef = True
                     matchLabels = {
                         layer = "app"
+                        zone = subnet.zone
                     }
                 }   
                 nodeRoleSelector = {
@@ -515,7 +517,7 @@ _resources += [
                 name = providerConfigName
             }          
         }
-    }
+    } for subnet in subnet_configs if subnet.layer == "app"
 ]
 _resources += [
     {
@@ -523,6 +525,9 @@ _resources += [
         kind = "Addon"
         metadata = {
             name = "addon-" + addon.name + "-" + projectName
+            annotations = {
+                "krm.kcl.dev/ready": "True"
+            }            
         }
         spec = {
             forProvider = {
@@ -602,7 +607,7 @@ _resources += [
                 name = "provider-k8s-" + projectName
             }
         }
-    }
+    } 
 ]
 _resources += [
     {
