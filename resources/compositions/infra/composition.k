@@ -485,14 +485,15 @@ _resources += [
                     matchLabels = {
                         name = "cluster-" + projectName
                     }
-                }
-                subnetSelector = {
-                    matchControllerRef = True
-                    matchLabels = {
-                        layer = "app"
-                        zone = subnet.zone
-                    }
-                }   
+                } 
+                subnetRefs = [
+                    {
+                        name = subnet.name + "-" + projectName
+                    }  for subnet in subnet_configs if subnet.layer == "app"
+                ]
+                  
+                     
+
                 nodeRoleSelector = {
                     matchControllerRef = True
                     matchLabels = {
@@ -503,9 +504,9 @@ _resources += [
                     maxUnavailable = 1
                 }
                 scalingConfig = {
-                    minSize = 1
-                    maxSize = 1
-                    desiredSize = 1
+                    minSize = 2
+                    maxSize = 3
+                    desiredSize = 2
                 }
 
                 tags = {
@@ -517,7 +518,7 @@ _resources += [
                 name = providerConfigName
             }          
         }
-    } for subnet in subnet_configs if subnet.layer == "app"
+    } 
 ]
 _resources += [
     {
